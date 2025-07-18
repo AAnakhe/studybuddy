@@ -1,14 +1,12 @@
-# Start with an official Java runtime base image
-FROM eclipse-temurin:21-jdk-alpine
-
-# Set the working directory inside the container
+# Stage 1: Build with Maven
+FROM maven:3.9.6-eclipse-temurin-21 as builder
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Copy Maven build artifacts into the container
-COPY target/studbud-0.0.1-SNAPSHOT.jar app.jar
-
-# Expose the port that the app runs on
+# Stage 2: Run the application
+FROM eclipse-temurin:21-jdk-alpine
+WORKDIR /app
+COPY --from=builder /app/target/studbud-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
-
-# Command to run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
